@@ -1,0 +1,22 @@
+---
+stages:
+  - build
+
+build:
+  image: ubuntu:20.04
+  tags: 
+    - docker-runner
+  stage: build
+  before_script:
+    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install imagemagick jq git zip 2>/dev/null >/dev/null
+  script:
+    - export ASSETS_DIR=$(find ${CI_PROJECT_DIR} -type d -name "assets" -print)
+    - export DIFF_FILES="$(git diff --name-only --diff-filter=ACMRT "$(git merge-base origin/master HEAD)" -- ${ASSETS_DIR})"
+    - echo $DIFF_FILES
+    - chmod +x ${CI_PROJECT_DIR}/build.sh
+    - ${CI_PROJECT_DIR}/build.sh
+  artifacts:
+    paths:
+      - builds/
+    expire_in: 1 week
